@@ -24,7 +24,7 @@ node {
      mysql.stop()
    }                                     
    stage('docker build/push') {            
-     docker.withRegistry('https://index.docker.io/v2/', 'docker-hub') {
+     docker.withRegistry('https://index.docker.io/v2/', 'dockerhub') {
        def app = docker.build("eco12345/jenkins-dsl:${commit_id}", '.').push()
      }                                     
    }                                       
