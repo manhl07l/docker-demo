@@ -25,7 +25,7 @@ node {
    }                                     
    stage('docker build/push') {            
      docker.withRegistry('https://index.docker.io/v2/', 'docker-hub') {
-       def app = docker.build("/eco12345/jenkins-dsl:${commit_id}", '.').push()
+       def app = docker.build("eco12345/jenkins-dsl:${commit_id}", '.').push()
      }                                     
    }                                       
 }                                          
