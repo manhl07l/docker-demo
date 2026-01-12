@@ -1,5 +1,5 @@
 pipeline {
-    agent none
+    agent any
 
     environment {
         IMAGE_NAME = "eco12345/jenkins-dsl"
@@ -11,41 +11,81 @@ pipeline {
 
     stages {
 
-        stage('Check branch & tag') {
-            agent any
-            when {
-                allOf {
-                    branch 'dev'
-                    expression { env.GIT_TAG_NAME }
-                }
-            }
-            steps {
-                echo "Triggered by tag: ${GIT_TAG_NAME}"
-            }
-        }
-
         stage('Checkout') {
             agent any
             steps {
                 checkout scm
+                sh 'git fetch --tags'
+                sh 'git describe --tags --exact-match || true'
+                sh 'echo "GIT_BRANCH=${GIT_BRANCH}"'
             }
         }
 
-        stage('Build & Test & Sonar') {
-            agent { label 'docker' }
+            /* =========================
+            VERIFY TAG
+            Chỉ chạy khi có TAG
+            ========================== */
+        stage('Verify tag') {
+            agent any
+            when {
+                expression {
+                env.GIT_BRANCH?.startsWith("refs/tags/")
+                }
+            }
             steps {
-                withCredentials([
-                    string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')
-                ]) {
-                    sh '''
-                    ./gradlew clean test build
+                sh '''
+                echo "Verifying tag belongs to dev..."
+                git fetch origin dev
+                git branch --contains HEAD | grep dev
+                '''
+            }
+        }
 
-                    sonar-scanner \
-                      -Dsonar.projectKey=gs-gradle \
-                      -Dsonar.projectVersion=${GIT_TAG_NAME} \
-                      -Dsonar.host.url=${SONAR_HOST} \
-                      -Dsonar.login=${SONAR_TOKEN}
-                    '''
+            /* =========================
+            BUILD
+            ========================== */
+        stage('Build') {
+            agent any
+            when {
+                anyOf {
+                branch 'dev'
+                branch 'stg'
+                branch 'master'
+                expression { env.GIT_BRANCH?.startsWith("refs/tags/") }
+                }
+            }
+            steps {
+                sh './gradlew clean build -x test'
+            }
+        }
+
+            /* =========================
+            TEST
+            ========================== */
+        stage('Test') {
+            agent any
+            steps {
+                sh './gradlew test'
+            }
+        }
+
+            /* =========================
+            SONARQUBE
+            ========================== */
+        stage('SonarQube') {
+            agent any
+            environment {
+                SONAR_SCANNER = tool 'sonar'
+            }
+            steps {
+                withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                sh """
+                    ${SONAR_SCANNER}/bin/sonar-scanner \
+                    -Dsonar.projectKey=myapp \
+                    -Dsonar.sources=src \
+                    -Dsonar.host.url=${SONAR_HOST} \
+                    -Dsonar.login=${SONAR_TOKEN}
+                """
                 }
             }
         }
