@@ -65,7 +65,7 @@ pipeline {
                 git fetch origin dev
 
                 git merge-base --is-ancestor HEAD origin/dev \
-                  || (echo "❌ Tag NOT created from dev" && exit 1)
+                  || (echo "❌ Tag NOT created from dev cai nay de test" && exit 1)
                 '''
             }
         }
