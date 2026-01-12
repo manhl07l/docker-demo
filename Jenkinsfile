@@ -40,35 +40,6 @@ pipeline {
                 '''
             }
         }
-
-            /* =========================
-            BUILD
-            ========================== */
-        stage('Build') {
-            agent any
-            when {
-                anyOf {
-                branch 'dev'
-                branch 'stg'
-                branch 'master'
-                expression { env.GIT_BRANCH?.startsWith("refs/tags/") }
-                }
-            }
-            steps {
-                sh './gradlew clean build -x test'
-            }
-        }
-
-            /* =========================
-            TEST
-            ========================== */
-        stage('Test') {
-            agent any
-            steps {
-                sh './gradlew test'
-            }
-        }
-
             /* =========================
             SONARQUBE
             ========================== */
