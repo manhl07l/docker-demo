@@ -16,8 +16,14 @@ pipeline {
             steps {
                 checkout scm
                 sh 'git fetch --tags'
-                sh 'git describe --tags --exact-match || true'
-                sh 'echo "GIT_BRANCH=${GIT_BRANCH}"'
+                script {
+                    if (env.GIT_BRANCH?.startsWith("refs/tags/")) {
+                        env.TAG_NAME = env.GIT_BRANCH.replace("refs/tags/", "")
+                        echo "TAG_NAME=${env.TAG_NAME}"
+                    } else {
+                        error "This build is not triggered by a tag"
+                    }
+                }
             }
         }
 
