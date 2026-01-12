@@ -55,28 +55,28 @@ pipeline {
         /* =========================
            SONARQUBE (chỉ cho TAG)
         ========================== */
-        stage('SonarQube') {
-            agent any
-            when {
-                buildingTag()
-            }
-            environment {
-                SONAR_SCANNER = tool 'sonar'
-            }
-            steps {
-                withCredentials([
-                    string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')
-                ]) {
-                    sh """
-                    ${SONAR_SCANNER}/bin/sonar-scanner \
-                      -Dsonar.projectKey=jenkins-dsl \
-                      -Dsonar.sources=. \
-                      -Dsonar.host.url=${SONAR_HOST} \
-                      -Dsonar.login=${SONAR_TOKEN}
-                    """
-                }
-            }
-        }
+        // stage('SonarQube') {
+        //     agent any
+        //     when {
+        //         buildingTag()
+        //     }
+        //     environment {
+        //         SONAR_SCANNER = tool 'sonar'
+        //     }
+        //     steps {
+        //         withCredentials([
+        //             string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')
+        //         ]) {
+        //             sh """
+        //             ${SONAR_SCANNER}/bin/sonar-scanner \
+        //               -Dsonar.projectKey=jenkins-dsl \
+        //               -Dsonar.sources=. \
+        //               -Dsonar.host.url=${SONAR_HOST} \
+        //               -Dsonar.login=${SONAR_TOKEN}
+        //             """
+        //         }
+        //     }
+        // }
 
         /* =========================
            BUILD & PUSH IMAGE
