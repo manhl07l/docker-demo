@@ -21,11 +21,29 @@ pipeline {
             }
         }
 
+        stage('Guard – tag only') {
+            agent any
+            when {
+                not { buildingTag() }
+            }
+            steps {
+                echo "ℹ️ Branch build detected (${env.BRANCH_NAME})"
+                echo "ℹ️ This pipeline is TAG-based CD only → skip"
+
+                script {
+                    currentBuild.result = 'NOT_BUILT'
+                }
+            }
+        }
+
         /* =========================
            CHECKOUT
         ========================== */
         stage('Checkout') {
             agent any
+            when {
+                buildingTag()
+            }
             steps {
                 checkout scm
             }
