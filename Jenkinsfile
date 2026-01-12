@@ -89,7 +89,7 @@ pipeline {
                 buildingTag()
             }
             steps {
-                sshagent(['jenkins-agent-01']) {
+                sshagent(['ssh-key-for-deploy']) {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${DEV_SERVER} '
                         docker pull ${IMAGE_NAME}:${TAG_NAME}
