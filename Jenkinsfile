@@ -4,7 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME   = "eco12345/jenkins-dsl"
         SERVICE_NAME = "jenkins-dsl"
-        DEV_SERVER   = "dev@192.168.92.131"
+        DEV_SERVER   = "agent@192.168.92.131"
         APP_PORT     = "3000"
     }
 
