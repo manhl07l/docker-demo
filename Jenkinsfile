@@ -73,8 +73,8 @@ pipeline {
                 ]) {
                     sh '''
                     docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
-                    docker build -t ${IMAGE_NAME}:${GIT_TAG_NAME} .
-                    docker push ${IMAGE_NAME}:${GIT_TAG_NAME}
+                    docker build -t ${IMAGE_NAME}:$TAG_NAME .
+                    docker push ${IMAGE_NAME}:$TAG_NAME
                     '''
                 }
             }
@@ -86,11 +86,11 @@ pipeline {
                 sshagent(['jenkins-agent-01']) {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${DEV_SERVER} '
-                        docker pull ${IMAGE_NAME}:${GIT_TAG_NAME}
+                        docker pull ${IMAGE_NAME}:$TAG_NAME
                         docker stop ${SERVICE_NAME} || true
                         docker rm ${SERVICE_NAME} || true
                         docker run -d --name ${SERVICE_NAME} -p ${APP_PORT}:3000 \
-                          ${IMAGE_NAME}:${GIT_TAG_NAME}
+                          ${IMAGE_NAME}:$TAG_NAME
                     '
                     """
                 }
