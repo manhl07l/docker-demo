@@ -91,7 +91,7 @@ pipeline {
         }
 
         stage('Build & Push Image') {
-            agent { label 'docker' }
+            agent any
             steps {
                 withCredentials([
                     usernamePassword(
