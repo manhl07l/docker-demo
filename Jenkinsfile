@@ -10,15 +10,31 @@ pipeline {
 
     stages {
 
+        /* =========================
+           INFO
+        ========================== */
+        stage('Info') {
+            agent any
+            steps {
+                echo "BRANCH_NAME = ${env.BRANCH_NAME}"
+                echo "TAG_NAME    = ${env.TAG_NAME}"
+            }
+        }
+
+        /* =========================
+           CHECKOUT
+        ========================== */
         stage('Checkout') {
             agent any
             steps {
                 checkout scm
-                sh 'git fetch --all --tags'
-                echo "BRANCH_NAME=${env.BRANCH_NAME}"
             }
         }
 
+        /* =========================
+           VERIFY TAG SOURCE
+           (chỉ chạy cho TAG)
+        ========================== */
         stage('Verify tag from dev') {
             agent any
             when {
@@ -26,13 +42,19 @@ pipeline {
             }
             steps {
                 sh '''
+                echo "Verify: tag must be created from dev"
+
                 git fetch origin dev
+
                 git merge-base --is-ancestor HEAD origin/dev \
-                  || (echo "❌ Tag not created from dev" && exit 1)
+                  || (echo "❌ Tag NOT created from dev" && exit 1)
                 '''
             }
         }
 
+        /* =========================
+           BUILD & PUSH DOCKER IMAGE
+        ========================== */
         stage('Build & Push Image') {
             agent any
             when {
@@ -47,14 +69,20 @@ pipeline {
                     )
                 ]) {
                     sh '''
-                    docker login -u $DOCKER_USER -p $DOCKER_PASS
-                    docker build -t $IMAGE_NAME:$BRANCH_NAME .
-                    docker push $IMAGE_NAME:$BRANCH_NAME
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+
+                    docker build -t ${IMAGE_NAME}:${TAG_NAME} .
+                    docker push ${IMAGE_NAME}:${TAG_NAME}
+
+                    docker logout
                     '''
                 }
             }
         }
 
+        /* =========================
+           DEPLOY
+        ========================== */
         stage('Deploy DEV') {
             agent any
             when {
@@ -63,17 +91,27 @@ pipeline {
             steps {
                 sshagent(['jenkins-agent-01']) {
                     sh """
-                    ssh ${DEV_SERVER} '
-                      docker pull $IMAGE_NAME:$BRANCH_NAME
-                      docker stop $SERVICE_NAME || true
-                      docker rm $SERVICE_NAME || true
-                      docker run -d --name $SERVICE_NAME \
-                        -p $APP_PORT:3000 \
-                        $IMAGE_NAME:$BRANCH_NAME
+                    ssh -o StrictHostKeyChecking=no ${DEV_SERVER} '
+                        docker pull ${IMAGE_NAME}:${TAG_NAME}
+                        docker stop ${SERVICE_NAME} || true
+                        docker rm ${SERVICE_NAME} || true
+                        docker run -d \
+                          --name ${SERVICE_NAME} \
+                          -p ${APP_PORT}:3000 \
+                          ${IMAGE_NAME}:${TAG_NAME}
                     '
                     """
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Deploy ${TAG_NAME} SUCCESS"
+        }
+        failure {
+            echo "❌ Pipeline FAILED"
         }
     }
 }
