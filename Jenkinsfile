@@ -34,7 +34,7 @@ pipeline {
             }
             steps {
                 sh '''
-                echo "Verifying tag belongs to dev..."
+                echo "Verifying tag belongs to dev...v1"
                 git fetch origin dev
                 git branch --contains HEAD | grep dev
                 '''
