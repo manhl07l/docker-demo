@@ -43,23 +43,23 @@ pipeline {
             /* =========================
             SONARQUBE
             ========================== */
-        stage('SonarQube') {
-            agent any
-            environment {
-                SONAR_SCANNER = tool 'sonar'
-            }
-            steps {
-                withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
-                sh """
-                    ${SONAR_SCANNER}/bin/sonar-scanner \
-                    -Dsonar.projectKey=gs-gradle \
-                    -Dsonar.sources=src \
-                    -Dsonar.host.url=${SONAR_HOST} \
-                    -Dsonar.login=${SONAR_TOKEN}
-                """
-                }
-            }
-        }
+        // stage('SonarQube') {
+        //     agent any
+        //     environment {
+        //         SONAR_SCANNER = tool 'sonar'
+        //     }
+        //     steps {
+        //         withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+        //         sh """
+        //             ${SONAR_SCANNER}/bin/sonar-scanner \
+        //             -Dsonar.projectKey=gs-gradle \
+        //             -Dsonar.sources=src \
+        //             -Dsonar.host.url=${SONAR_HOST} \
+        //             -Dsonar.login=${SONAR_TOKEN}
+        //         """
+        //         }
+        //     }
+        // }
 
         stage('Build & Push Image') {
             agent any
